@@ -8,10 +8,9 @@ const helmet = require('helmet');
 const cors = require('cors');
 const {mergeAll} = require('ramda');
 const mingo = require("mingo");
-const axios = require('axios');
+const fetch = require('node-fetch');
 const http = require('http');
 const https = require('https');
-import fetch from 'node-fetch';
 
 
 // Constants
@@ -36,7 +35,7 @@ app.use(morgan('combined'));
 // });
 // Custom Headers
 app.use((req, res, next) => {
-  res.setHeader('x-4sure', 'You should be working for us now..');
+  res.setHeader('X-4SURE', 'Genius, if you are looking at this, you should be working with us.');
   // res.removeHeader('x-powered-by');
   next();
 });
@@ -53,30 +52,26 @@ const runCalls = (req) => {
     const backends = req.body.backends;
    return backends.map(backend => {
         const {url, query, key} = backend;
-        const axiosData = {
-            url,
-            headers: {},
-            method: 'get',
-              // `httpAgent` and `httpsAgent` define a custom agent to be used when performing http
-                // and https requests, respectively, in node.js. This allows options to be added like
-                // `keepAlive` that are not enabled by default.
-                httpAgent: new http.Agent({ keepAlive: true, rejectUnauthorized: false }),
-                httpsAgent: new https.Agent({ keepAlive: true, rejectUnauthorized: false }),
-        };
+        let config = {};
+
 
         // FOWARED HEADERS TO BACKENDS
-        if(req.headers) {
-            axiosData.headers = req.headers;
+        if(req.headers['authorization']) {
+            if (!config.headers) {
+                config.headers = {};
+            }
+            config.headers['authorization'] = req.headers['authorization'];
         }
 
         //
-        return axios(axiosData)
-          .then(response => {
-            console.log({ check: response.data });
-            const result = query ? runQuery(query, response.data) : response.data;
-            return key ? {[key]: result} : result;
-          })
-          .catch(err => console.error({ err }));
+        return fetch(url, config)
+            .then(res => res.json())
+            .then(data => {
+                console.log({ checker: config });
+                const result = query ? runQuery(query, data) : data;
+                return {[key]: result};
+            })
+            .catch(err => console.error({ err }))
     });
 
 }
@@ -89,6 +84,10 @@ app.post('/query', async (req, res) => {
     const mergedResult = mergeAll(result);
     res.json(mergedResult);
 });
+
+app.get('hello', (req, res) => {
+    res.json({hello: 'world'});
+})
 
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
