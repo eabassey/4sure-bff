@@ -1,0 +1,27 @@
+{
+  "name": "4sure-bff",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "helmet": "^5.0.2",
+    "mingo": "^6.0.5",
+    "morgan": "^1.10.0",
+    "node-fetch": "^2.6.7",
+    "ramda": "^0.28.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
