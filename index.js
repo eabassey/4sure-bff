@@ -14,10 +14,10 @@ const https = require('https');
 
 const {Aggregator} = require("mingo/aggregator");
 const { useOperators, OperatorType } = require("mingo/core");
-const { $match, $group, } = require("mingo/operators/pipeline");
+const { $match, $group, $project, $limit } = require("mingo/operators/pipeline");
 const { $min, $first, $sum } = require("mingo/operators/accumulator");
 
-useOperators(OperatorType.PIPELINE, { $match, $group });
+useOperators(OperatorType.PIPELINE, { $match, $group, $project, $limit });
 useOperators(OperatorType.ACCUMULATOR, { $min, $first, $sum });
 
 
@@ -53,21 +53,6 @@ app.use((req, res, next) => {
 // app.use(cookieParser(process.env.SESSION_SECRET));
 
 const runQuery = (query, collection) => {
-    // let cursor;
-    //  cursor = mingo.find(collection, query.where || {}, query.select || {});
-    
-    //  if (query.skip) {
-    //     cursor = cursor.skip(query.skip)
-    // }
-
-    // if (query.limit) {
-    //     cursor = cursor.limit(query.limit)
-    // }
-
-    // if (query.sort) {
-    //     cursor = cursor.sort(query.sort)
-    // }
-    // return cursor.all();
     let agg = new Aggregator(query);
       
       // return an iterator for streaming results
@@ -78,7 +63,8 @@ const runQuery = (query, collection) => {
 const runCalls = (req) => {
     const backends = req.body.backends;
    return backends.map(backend => {
-        const {url, query, key} = backend;
+        const {url, root, query, key} = backend;
+        console.log({backend})
         let config = {};
 
 
@@ -95,7 +81,7 @@ const runCalls = (req) => {
             .then(res => res.json())
             .then(data => {
                 console.log({ checker: config });
-                const result = query ? runQuery(query, data) : data;
+                const result = query ? runQuery(query, root ? data[root] : data) : data;
                 return {[key]: result};
             })
             .catch(err => console.error({ err }))
