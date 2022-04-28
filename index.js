@@ -12,6 +12,14 @@ const fetch = require('node-fetch');
 const http = require('http');
 const https = require('https');
 
+const {Aggregator} = require("mingo/aggregator");
+const { useOperators, OperatorType } = require("mingo/core");
+const { $match, $group, } = require("mingo/operators/pipeline");
+const { $min, $first, $sum } = require("mingo/operators/accumulator");
+
+useOperators(OperatorType.PIPELINE, { $match, $group });
+useOperators(OperatorType.ACCUMULATOR, { $min, $first, $sum });
+
 
 // Constants
 const PORT = process.env.PORT || 3030;
@@ -45,7 +53,26 @@ app.use((req, res, next) => {
 // app.use(cookieParser(process.env.SESSION_SECRET));
 
 const runQuery = (query, collection) => {
-    return mingo.find(collection, query.find).all();
+    // let cursor;
+    //  cursor = mingo.find(collection, query.where || {}, query.select || {});
+    
+    //  if (query.skip) {
+    //     cursor = cursor.skip(query.skip)
+    // }
+
+    // if (query.limit) {
+    //     cursor = cursor.limit(query.limit)
+    // }
+
+    // if (query.sort) {
+    //     cursor = cursor.sort(query.sort)
+    // }
+    // return cursor.all();
+    let agg = new Aggregator(query);
+      
+      // return an iterator for streaming results
+      let result = agg.run(collection);
+      return result;
 };
 
 const runCalls = (req) => {
